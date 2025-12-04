@@ -5,10 +5,5 @@ pandas
 scikit-learn
 joblib
 
-konlpy
-JPype1
-
 jinja2
 python-multipart
-
-scikit-surprise
