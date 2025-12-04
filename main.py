@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from starlette.staticfiles import StaticFiles
-from routers import auth_router, movie_router
+from routers import auth, movie
 
 app = FastAPI()
 
@@ -11,5 +11,4 @@ templates = Jinja2Templates(directory="templates")
 
 @app.get("/")
 def index(request: Request):
-
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse("base.html", {"request": request})
