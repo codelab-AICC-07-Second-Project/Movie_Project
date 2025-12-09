@@ -2,6 +2,7 @@ requests
 fastapi
 uvicorn[standard]
 aiomysql
+bcrypt
 
 pandas
 scikit-learn
