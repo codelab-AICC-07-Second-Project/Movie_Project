@@ -207,3 +207,5 @@ marimo/_lsp/
 __marimo__/
 
 .idea/
+
+.models/optimized_rf_model.joblib
