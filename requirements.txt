@@ -1,0 +1,11 @@
+requests
+fastapi
+uvicorn[standard]
+aiomysql
+
+pandas
+scikit-learn
+joblib
+
+jinja2
+python-multipart

@@ -1,0 +1,67 @@
+body {
+    background: #0C0A0F;
+}
+
+/* 로고 */
+.logo {
+    position: absolute;
+    top: 40px;
+    left: 80px;
+}
+
+/* 로고 이미지 크기 */
+.logo img {
+    height: 30px;
+    width: auto;
+    display: block;
+}
+
+/* 로그인/조인 네비 위치 */
+#login-area {
+    position: absolute;
+    top: 40px;
+    right: 80px;
+
+    display: flex;
+    gap: 16px;
+    font-size: 15px;
+
+}
+
+/* 링크 스타일 */
+#login-area a {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+#login-area a:hover {
+    text-decoration: underline;
+}
+
+/* 로그인/조인, 환영/로그아웃 위치를 동일하게 */
+#login-area,
+#logout-area {
+    position: absolute;
+    top: 40px;
+    right: 80px;
+    display: flex;
+    gap: 28px;
+    font-size: 15px;
+    color: #ffffff;
+}
+
+.logout-link {
+   margin-left: 20px;
+}
+
+/* 링크 스타일 (둘 다 공통) */
+#login-area a,
+#logout-area a {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+#login-area a:hover,
+#logout-area a:hover {
+    text-decoration: underline;
+}
