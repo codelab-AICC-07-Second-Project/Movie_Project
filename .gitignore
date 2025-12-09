@@ -208,4 +208,4 @@ __marimo__/
 
 .idea/
 
-.models/optimized_rf_model.joblib
+models/optimized_rf_model.joblib
