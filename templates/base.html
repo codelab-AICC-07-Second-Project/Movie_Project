@@ -32,17 +32,24 @@
         <img src="/static/img/로고.PNG" alt="logo">
     </div>
     <div class="auth-area">
+
+        {% block login %}
+        {% if userId %}
+        <!-- 로그아웃 / 환영 멘트 영역 -->
+        <div id="logout-area" style="display: none;">
+            <span id="welcome-name">
+                {{userId}}님 환영합니다.
+            </span>
+
+            <a href="#" id="logout-link" class="logout-link">Logout</a>
+        </div>
+        {% else %}
         <!-- 로그인 / 회원가입 영역 -->
         <div id="login-area">
             <a href="#" id="login-link">LOGIN</a>
             <a href="#" id="register-link">JOIN</a>
         </div>
-
-        <!-- 로그아웃 / 환영 멘트 영역 -->
-        <div id="logout-area" style="display: none;">
-            <span id="welcome-name">000</span>님 환영합니다.
-            <a href="#" id="logout-link" class="logout-link">Logout</a>
-        </div>
+        {% endif %}
     </div>
 </header>
 <div style="

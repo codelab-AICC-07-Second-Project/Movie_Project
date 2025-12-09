@@ -2,8 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from starlette.staticfiles import StaticFiles
-# from routers import auth_router, movie_router, chart_router tmdb_router
-
+# from routers import auth_router, movie_router, chart_router, tmdb_router
 
 app = FastAPI()
 
