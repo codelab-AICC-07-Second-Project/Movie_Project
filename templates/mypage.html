@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+
+{% block login %}
+{% if user is defined and user %}
+{{ user.accountId }}
+{% if user.accountId %}
+<div id="logout-area">
+        <span id="welcome-name">
+            {{user.accountId}}님 환영합니다.
+        </span>
+    <a href="/auth/mypage?userId={{ user.accountId }}" id="mypage-link" class="mypage-link">Mypage</a>
+    <a href="/auth/logout" id="logout-link" class="logout-link">Logout</a>
+</div>
+{% endif %}
+{% else %}
+<div id="login-area">
+    <a href="#" id="login-link">LOGIN</a>
+    <a href="#" id="register-link">JOIN</a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block title %}내 정보 조회{% endblock %}
+
+{% block content %}
+
+<style>
+
+
+    .mypage-container {
+        height: calc(100vh - 100px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .mypage-card {
+        width: 500px;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(8px);
+        border-radius: 24px;
+        padding: 40px 60px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+        color: white;
+        position: relative;
+        z-index: 20;
+    }
+
+    .mypage-card h2 {
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 24px;
+        font-weight: 600;
+    }
+
+    .info-field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .info-field input,
+    .info-field select {
+        height: 40px;
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+        color: white;
+        padding: 4px;
+        outline: none;
+    }
+
+    option {
+        color: black;
+    }
+
+    .action-btn {
+        width: 100%;
+        height: 42px;
+        background: #ffffff;
+        color: #000000;
+        border-radius: 10px;
+        border: none;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+</style>
+
+<!-- 직업 코드 매핑 리스트 -->
+{% set occ = [
+"academic/educator",
+"artist",
+"clerical/admin",
+"college/grad student",
+"customer service",
+"doctor/health care",
+"executive/managerial",
+"farmer",
+"homemaker",
+"K-12 student",
+"lawyer",
+"programmer",
+"retired",
+"sales/marketing",
+"scientist",
+"self-employed",
+"technician/engineer",
+"tradesman/craftsman",
+"writer"
+] %}
+
+<style>
+    body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-image: url("/static/img/ticket.png");
+        background-size: cover;
+        background-position: center;
+        z-index: -1;
+        opacity: 1;
+    }
+</style>
+
+<div class="mypage-container">
+    <div class="mypage-card">
+        <h2>내 정보 조회</h2>
+
+        <form id="updateForm" method="post" action="/auth/user/update">
+            <input type="hidden" name="accountId" value="{{ user.accountId }}">
+
+            <div class="info-field">
+                <label>아이디</label>
+                <input id="accountId" name="accountId" value="{{ user.accountId }}" readonly>
+            </div>
+
+            <div class="info-field">
+                <label>비밀번호</label>
+                <input id="password" name="password" type="password" placeholder="변경하지 않을 경우 비워두세요" disabled>
+            </div>
+
+            <div class="info-field">
+                <label>이름</label>
+                <input id="name" name="name" value="{{ user.name }}" disabled>
+            </div>
+
+            <div class="info-field">
+                <label>성별</label>
+                <input id="gender" name="gender" value="{{ user.gender }}" disabled>
+            </div>
+
+            <div class="info-field">
+                <label>생년월일</label>
+                <input id="birth" name="birth" value="{{ user.birth }}" disabled>
+            </div>
+
+            <div class="info-field">
+                <label>직업</label>
+
+                <!-- 조회 - 텍스트 표시 -->
+                <input id="occ_text" value="{{ occ[user.occupation] }}" disabled>
+
+                <!-- 수정 - 드롭다운 -->
+                <select id="occ_select" name="occupation" style="display:none;">
+                    {% for i in range(0, occ|length) %}
+                    <option value="{{ i }}" {% if i== user.occupation %}selected{% endif %}>
+                        {{ occ[i] }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="button" id="modeBtn" class="action-btn">수정하기</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    let isEditMode = false;
+
+    document.getElementById("modeBtn").addEventListener("click", function () {
+        const fields = ["accountId", "password", "name", "gender", "birth"];
+
+        if (!isEditMode) {
+            // 수w젇모드
+            fields.forEach(id => document.getElementById(id).disabled = false);
+
+            document.getElementById("occ_text").style.display = "none";
+            document.getElementById("occ_select").style.display = "block";
+
+            this.innerText = "저장하기";
+            isEditMode = true;
+        } else {
+            // 저장
+            document.getElementById("updateForm").submit();
+        }
+    });
+</script>
+
+{% endblock %}
