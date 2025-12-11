@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+
+{% block style %}
+<style>
+    body {
+        color: white;
+        background-color: #121212;
+    }
+
+    .movie-hero {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 0;
+
+        background-color: #121212;
+        background-image: none;
+        transition: background-image 0.5s ease-in-out;
+    }
+
+    .hero-info {
+        padding-left: 80px;
+        padding-bottom: 50px;
+    }
+
+    .trending-section {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .trending-section .btn {
+        color: white;
+        font-size: 2rem;
+        align-self: center;
+        background: rgba(0, 0, 0, 0.5);
+        border: none;
+        height: 300px;
+        transition: background-color 0.2s;
+        z-index: 10;
+        padding: 0 15px;
+    }
+    .trending-section .btn:hover {
+        background-color: rgba(0, 0, 0, 0.7);
+    }
+
+    .poster-list-container {
+        flex-grow: 1;
+        width: 100%;
+        overflow-x: scroll;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    .poster-list-container::-webkit-scrollbar {
+        display: none;
+    }
+
+    .movie-card {
+        transition: transform 0.3s ease;
+        cursor: pointer;
+    }
+
+    .movie-card:hover {
+        transform: scale(1.05);
+        z-index: 5;
+    }
+
+    .movie-card img {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="movie-hero">
+    <div class="hero-info">
+        <h1 class="text-white" style="font-size: 3.5rem; font-weight: 700; margin-bottom: 0;"></h1>
+        <p class="text-secondary mb-1" style="font-size: 1.1rem; margin-top: 5px;"></p>
+        <p class="text-warning mb-0" style="font-size: 1.5rem;"></p>
+        <h3 class="text-white mt-4" style="font-weight: 500;">Trending</h3>
+    </div>
+</div>
+
+<div class="trending-section">
+    <div class="d-flex align-items-center" id="images">
+        </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    const genreMap = {{ genre_map | tojson | safe }};
+
+    function convertGenreIds(genreIds) {
+        return genreIds.map(id => genreMap[id] || '미분류').join(', ');
+    }
+
+    const imagesContainer = document.getElementById("images");
+    const url = 'https://image.tmdb.org/t/p/w1280';
+    const posterUrl = 'https://image.tmdb.org/t/p/w300';
+
+    const movieHero = document.querySelector('.movie-hero');
+    const heroInfo = movieHero.querySelector('.hero-info');
+    const heroTitle = heroInfo.querySelector('h1');
+    const heroSubtitle = heroInfo.querySelector('p:nth-of-type(1)');
+    const heroRating = heroInfo.querySelector('p:nth-of-type(2)');
+
+    let initialMovie = null;
+
+    function updateHero(imageUrl, title, genres, rating) {
+        movieHero.style.background =
+            `linear-gradient(to top, rgba(0, 0, 0, 0.9) 10%, transparent 100%),
+             url('${imageUrl}') no-repeat center center`;
+        movieHero.style.backgroundSize = 'cover';
+
+        heroTitle.textContent = title;
+        heroSubtitle.textContent = genres;
+        heroRating.textContent = `★ ${rating}`;
+    }
+
+    function restoreHero() {
+        if (initialMovie) {
+            updateHero(
+                initialMovie.imageUrl,
+                initialMovie.title,
+                initialMovie.genres,
+                initialMovie.rating
+            );
+        } else {
+            movieHero.style.backgroundImage = 'none';
+            movieHero.style.backgroundColor = '#121212';
+            heroTitle.textContent = '';
+            heroSubtitle.textContent = '';
+            heroRating.textContent = '';
+        }
+    }
+
+    const options = {
+        method: 'GET',
+        headers: {
+            accept: 'application/json',
+            Authorization: 'Bearer {{TMDB_TOKEN}}'
+        }
+    };
+
+    fetch('https://api.themoviedb.org/3/movie/top_rated?language=ko-KR&page=1&region=KR', options)
+        .then(res => res.json())
+        .then(res => {
+            const movies = res.results;
+
+            if (movies && movies.length > 0) {
+                const firstMovie = movies[0];
+
+                const initialImageUrl = firstMovie.backdrop_path
+                    ? url + firstMovie.backdrop_path
+                    : posterUrl + firstMovie.poster_path.replace('w300', 'w1280');
+
+                const initialTitle = `${firstMovie.title} (${firstMovie.release_date.substring(0, 4)})`;
+
+                const initialGenres = convertGenreIds(firstMovie.genre_ids);
+                const initialRating = firstMovie.vote_average.toFixed(1);
+
+                initialMovie = {
+                    imageUrl: initialImageUrl,
+                    title: initialTitle,
+                    genres: initialGenres,
+                    rating: initialRating
+                };
+
+                updateHero(initialMovie.imageUrl, initialMovie.title, initialMovie.genres, initialMovie.rating);
+            }
+
+            let movieHtml = '';
+
+            movies.forEach(movie => {
+                const posterPath = movie.poster_path;
+                const imageUrl = posterPath
+                    ? posterUrl + posterPath
+                    : '/static/img/default_poster.jpg';
+
+                const finalBackgroundImageUrl = movie.backdrop_path
+                    ? url + movie.backdrop_path
+                    : imageUrl.replace('w300', 'w1280');
+
+                const genres = convertGenreIds(movie.genre_ids);
+                const title = `${movie.title} (${movie.release_date.substring(0, 4)})`;
+                const rating = movie.vote_average.toFixed(1);
+
+                const Card = `
+                    <div class="movie-card me-3"
+                         style="min-width: 200px;"
+                         onmouseover="updateHero('${finalBackgroundImageUrl}', '${title}', '${genres}', '${rating}')"
+                         onmouseout="restoreHero()">
+                        <img src="${imageUrl}" alt="${movie.title}" class="img-fluid rounded"
+                            style="width: 100%; height: 300px; object-fit: cover;">
+                        <div class="card-body p-0 pt-2">
+                            <small class="badge bg-secondary">${genres}</small>
+                            <p class="text-white text-truncate mt-1 mb-0">${title}</p>
+                            <p class="text-warning mb-0" style="font-size: 1rem;">★ ${rating}</p>
+                        </div>
+                    </div>
+                `;
+                movieHtml += Card;
+            });
+
+            const final = `
+                <button class="btn p-0 me-0" id="prevBtn">&lt;</button>
+
+                <div class="d-flex flex-row overflow-auto pb-3 poster-list-container"
+                     style="padding: 0 80px;">
+                    ${movieHtml}
+                </div>
+
+                <button class="btn p-0 ms-0" id="nextBtn">&gt;</button>
+            `;
+
+            imagesContainer.innerHTML = final;
+
+            const scrollContainer = imagesContainer.querySelector('.poster-list-container');
+            const nextBtn = document.getElementById('nextBtn');
+            const prevBtn = document.getElementById('prevBtn');
+
+            const scrollAmount = scrollContainer.clientWidth;
+
+            nextBtn.addEventListener('click', () => {
+                scrollContainer.scrollBy({
+                    left: scrollAmount,
+                    behavior: 'smooth'
+                });
+            });
+
+            prevBtn.addEventListener('click', () => {
+                scrollContainer.scrollBy({
+                    left: -scrollAmount,
+                    behavior: 'smooth'
+                });
+            });
+
+        })
+        .catch(err => console.error('API 요청 및 처리 중 오류 발생:', err));
+</script>
+{% endblock %}

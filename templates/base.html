@@ -29,25 +29,24 @@
 
 <header>
     <div class="logo">
-        <img src="/static/img/로고.PNG" alt="logo">
+        <img src="/static/img/logo.png" alt="logo">
     </div>
     <div class="auth-area">
 
         {% block login %}
         {% if userId %}
-        <!-- 로그아웃 / 환영 멘트 영역 -->
         <div id="logout-area">
-            <span id="welcome-name">
-                {{userId}}님 환영합니다.
-            </span>
-
-            <a href="#" id="logout-link" class="logout-link">Logout</a>
+        <span id="welcome-name">
+            {{userId}}님 환영합니다.
+        </span>
+            <a href="/auth/mypage?userId={{ userId }}" id="mypage-link" class="mypage-link">MYPAGE</a>
+            <a href="/auth/logout" id="logout-link" class="logout-link">LOGOUT</a>
         </div>
+
         {% else %}
-        <!-- 로그인 / 회원가입 영역 -->
         <div id="login-area">
-            <a href="#" id="login-link">LOGIN</a>
-            <a href="#" id="register-link">JOIN</a>
+            <a href="/auth/login" id="login-link" class="login-link">LOGIN</a>
+            <a href="/auth/register" id="register-link" class="register-link">JOIN</a>
         </div>
         {% endif %}
         {% endblock %}
@@ -64,6 +63,6 @@
        ">
     {% block content %}{% endblock %}
 </div>
-    {% block script %}{% endblock %}
+{% block script %}{% endblock %}
 </body>
 </html>

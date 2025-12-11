@@ -1,8 +1,7 @@
-requests
+starlette
 fastapi
 uvicorn[standard]
-aiomysql
-bcrypt
+pymysql
 
 pandas
 scikit-learn
@@ -10,4 +9,3 @@ joblib
 
 jinja2
 python-multipart
-python-dotenv
