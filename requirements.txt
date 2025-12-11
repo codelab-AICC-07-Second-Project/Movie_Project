@@ -1,11 +1,18 @@
-starlette
+requests # 정세민
+starlette # 유원영
 fastapi
 uvicorn[standard]
+aiomysql # 정세민
 pymysql
+bcrypt # 김민서
 
 pandas
 scikit-learn
 joblib
 
+konlpy # 엄새얀
+JPype1 # 엄새얀
+
 jinja2
 python-multipart
+python-dotenv # 정세민
