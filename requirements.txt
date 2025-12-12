@@ -12,6 +12,8 @@ joblib
 
 konlpy # 엄새얀
 JPype1 # 엄새얀
+sqlalchemy
+
 
 jinja2
 python-multipart

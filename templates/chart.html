@@ -1,0 +1,577 @@
+{% extends 'base.html' %}
+
+{% block title %}차트 시각화{% endblock %}
+{% block style %}
+<style>
+body {
+    background-image: url('/static/img/ticket.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+    body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5); /* 여기 숫자 높일수록 더 어두워짐 */
+    z-index: -1;
+}
+</style>
+
+{% endblock %}
+   {% block login %}
+        {% if userId %}
+        <div id="logout-area">
+        <span id="welcome-name">
+            {{userId}}님 환영합니다.
+        </span>
+            <a href="/auth/mypage?userId={{ userId }}" id="mypage-link" class="mypage-link">MYPAGE</a>
+            <a href="/auth/logout" id="logout-link" class="logout-link">LOGOUT</a>
+        </div>
+
+        {% else %}
+        <div id="login-area">
+            <a href="/auth/login" id="login-link" class="login-link">LOGIN</a>
+            <a href="/auth/register" id="register-link" class="register-link">JOIN</a>
+        </div>
+        {% endif %}
+        {% endblock %}
+{% block content %}
+
+<script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+      //movieId = 150
+      function drawChart() {
+
+
+        total = []
+        total.push(['점수', '개수'])
+        const chartData = {{ chart_data | tojson }};
+
+        console.log(chartData)
+        chartData.forEach(row => {
+          total.push([String(row.rating), row.count]);
+        });
+
+        //for( row in chartData) {
+        //    total.push()
+        //}
+
+        var data = google.visualization.arrayToDataTable(total);
+
+        var options = {
+              title: '이 영화를 좋아한 사람들이 함께 좋아한 장르비율',
+              backgroundColor: 'transparent',
+              legend: {
+                textStyle: { color: '#ffffff' }  // 글자색
+              },
+              titleTextStyle: {
+                color: '#ffffff',
+                fontSize: 15,
+                bold: false
+              },
+
+              pieSliceBorderColor: "transparent",
+
+              slices: {
+                0: { color: '#f4e91a' },   // 5번 조각
+                1: { color: '#2f3035' },   // 4번 조각
+                2: { color: '#555867' },   // 3번 조각
+                3: { color: '#6d7381' },   // 2번 조각
+                4: { color: '#9aa0ae' }    // 1번 조각
+              }
+};
+
+        var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+
+        chart.draw(data, options);
+
+      } //drawchart
+    </script>
+
+
+
+<div id="main_container">
+    <div id="left_container">
+        <div id="chart_wrap">
+            <div id="piechart_wrapper">
+                <div id="piechart"></div>
+            </div>
+        </div>
+
+                <div id="percent_chart_wrap">
+                <h2 class="percent_chart_title">COMMENT PERCENTAGE</h2>
+                    {# namespace로 누적 가능한 변수 만들기 #}
+                    {% set ns = namespace(pos=0, neg=0) %}
+
+                    {# review_data 전체 돌면서 누적 #}
+                    {% for row in review_data %}
+                        {% if row.result == '긍정' %}
+                            {% set ns.pos = ns.pos + 1 %}
+                        {% else %}
+                            {% set ns.neg = ns.neg + 1 %}
+                        {% endif %}
+                    {% endfor %}
+
+                    {# 비율 계산 #}
+                    {% set total = ns.pos + ns.neg %}
+                    {% if total > 0 %}
+                        {% set pos_percent = (ns.pos * 100 // total) %}
+                        {% set neg_percent = (ns.neg * 100 // total) %}
+                    {% else %}
+                        {% set pos_percent = 0 %}
+                        {% set neg_percent = 0 %}
+                    {% endif %}
+
+                     <div class="percent_box">
+                         <div class="pos_percent_box">
+                            <div class="percent_name">긍정</div> <div class="percent_label">{{ pos_percent }}%</div>
+                         </div>
+                         <div class="neg_percent_box">
+                            <div class="percent_name">부정</div> <div class="percent_label">{{ neg_percent }}%</div>
+                         </div>
+
+
+                     </div>
+                      <div class="percent_bar">
+                            <div class="percent_fill positive" style="--percent: {{ pos_percent }}%;"></div>
+                        </div>
+
+
+
+                </div>
+
+    </div>
+
+        <div id="right_container">
+            <div id="review_wrap">
+                <h2 class="review_title">REVIEW</h2>
+                <div class="review_content">
+                    {% for row in review_data |reverse %}
+                        <div class="review_item">
+
+                            <!-- 프로필 동그라미 -->
+                            <div class="profile_circle
+                                {% if row.result == '긍정' %} profile_positive
+                                {% else %} profile_negative
+                                {% endif %}">
+                            </div>
+
+                            <!-- 텍스트 영역 -->
+                            <div class="review_text_box">
+                                <div class="review_name">{{ row.accountId }}</div>
+                                <div class="review_text">{{ row.review_text }}</div>
+                            </div>
+
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div id="review_input_wrap">
+                <form action="/chart/review">
+                <input type="hidden" name="accountId" value="{{userId}}">
+                <input type="hidden" name="movieId" value="{{movieId}}">
+                <textarea id="review_input" name="review_text" placeholder="type your review comment"></textarea>
+                <button id="review_send_btn">➤</button>
+                </form>
+            </div>
+        </div>
+
+
+</div>
+
+<div class="btn_chart_wrap">
+    <a href="/" class="btn_chart">뒤로 가기</a>
+    <a href="/" class="btn_chart">이 영화를 선택</a>
+</div>
+
+
+
+<style>
+    body {
+    display: flex;
+    justify-content: center;  /* 가로 가운데 */
+    align-items: start;       /* 세로는 위쪽 정렬 */
+    min-height: 100vh;        /* 화면 전체 높이 */
+}
+    #main_container {
+    display: flex;
+    gap: 25px;
+    margin-top: 30px;
+}
+#chart_wrap {
+    width: 700px;
+    height: 500px;
+    padding: 20px;
+    border-radius: 20px;
+    align-items: center;
+
+
+background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.12) 0%,   /* 밝은 유리 느낌 */
+        rgba(120, 130, 150, 0.10) 40%,  /* 회색 + 파랑끼 */
+        rgba(40, 40, 40, 0.15) 100%     /* 바깥쪽 어둡고 투명 */
+    );
+
+    backdrop-filter: blur(15px); /* 핵심! 부드러운 흐림 */
+    -webkit-backdrop-filter: blur(18px);
+
+    border: 1px solid rgba(255, 255, 255, 0.15); /* 아주 미세한 유리 테두리 */
+    box-shadow: 0 4px 30px rgba(0,0,0,0.2);      /* 부드러운 그림자 */
+}
+
+#piechart_wrapper {
+    width: 800px;                   /* 패딩 고려해서 살짝 작게 */
+    height: 500px;                  /* ← 여기서 차트크기조절 */
+}
+#piechart {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 25px rgba(0, 0, 0, 0.45));
+}
+
+#percent_chart_wrap {
+    width: 700px;
+    height: 230px;   /* 너가 원하는 높이만 조절하면 됨 */
+    border-radius: 20px;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+
+    justify-content: flex-start;  /* 세로 위쪽 */
+    align-items: flex-start;      /* 가로 왼쪽 */
+
+    padding: 20px;
+
+
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.12) 0%,
+        rgba(120, 130, 150, 0.10) 40%,
+        rgba(40, 40, 40, 0.15) 100%
+    );
+
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(18px);
+
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 30px rgba(0,0,0,0.2);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.percent_chart_title {
+   font-size: 15px;
+   color: #ffffff;
+   margin-bottom: 20px;
+   }
+
+/* 퍼센트 차트 실제 div */
+#percent_chart {
+    width: 100%;
+    height: 100%;
+    color: #ffffff;
+}
+
+
+.percent_box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+
+    width: 100%;
+    margin-bottom: 15px;   /* ← 아래 bar와 간격 */
+}
+
+/* 각 영역 지정 (HTML 클래스 그대로 사용) */
+.pos_percent_box { grid-area: pos; display:flex; gap:8px; align-items:center; }
+.neg_percent_box { grid-area: neg; display:flex; gap:8px; align-items:center; }
+
+.pos_percent_box,
+.neg_percent_box {
+    display: flex;
+    flex-direction: column;   /* ← 세로로 배치 */
+    align-items: center;      /* 가운데 정렬 */
+    gap: 4px;                 /* 위아래 간격 */
+}
+
+/* 막대는 아래 전체 열을 가로지르도록 */
+.percent_bar {
+  grid-area: bar;
+  width: 100%;
+  height: 18px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.08);
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+/* 내부 텍스트(라벨) 정렬 */
+.percent_name,
+.percent_label {
+  color:#fff;
+  font-size:16px;
+  display:inline-block;
+}
+
+/* 배경 바 */
+.percent_bar {
+    width: 70%;               /* 전체 가로폭 차지 */
+    height: 18px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.1);
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.2);
+
+    display: block;            /* ← inline 요소 옆으로 붙는 문제 방지 */
+    margin-top: 10px;          /* 위와 간격 */
+}
+.percent_fill.positive {
+    width: var(--percent);
+    height: 100%;
+    position: relative;
+    border-radius: 20px;
+
+    background: linear-gradient(
+        135deg,
+        rgba(255,255,255,0.5) 0%,
+        rgba(200,200,255,0.2) 50%,
+        rgba(255,255,255,0.6) 100%
+    );
+    background-size: 200% 100%;
+
+    backdrop-filter: blur(3px);
+
+    box-shadow:
+        inset 0 0 10px rgba(255,255,255,0.4),
+        0 0 20px rgba(160,180,255,0.2);
+
+    animation: glossyMove 2.4s ease-in-out infinite;
+}
+
+/* 움직이는 하이라이트 */
+@keyframes glossyMove {
+    0% { background-position: -200px 0; }
+    50% { background-position: 200px 0; }
+    100% { background-position: -200px 0; }
+}
+
+.btn_chart_wrap {
+    display: flex;
+    gap: 20px;
+    margin-top:10px
+}
+
+.btn_chart {
+    padding: 4px 25px;
+    color: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 20px;
+    text-decoration: none;
+    display: inline-block;
+}
+
+    #review_wrap {
+    width: 500px;       /* 너가 원하면 바꿔 */
+    height: 650px;
+    padding: 20px;
+    border-radius: 20px;
+
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.12) 0%,
+        rgba(120, 130, 150, 0.10) 40%,
+        rgba(40, 40, 40, 0.15) 100%
+    );
+.review_title {
+    font-size: 15px;
+   }
+
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 30px rgba(0,0,0,0.2);
+
+    color: #fff;
+}
+
+    #review_input_wrap {
+    width: 500px;
+    height: 80px;
+    padding: 20px;
+    border-radius: 20px;
+    margin-top: 20px;
+    position: relative;
+
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.12) 0%,
+        rgba(120, 130, 150, 0.10) 40%,
+        rgba(40, 40, 40, 0.15) 100%
+    );
+
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(18px);
+
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 30px rgba(0,0,0,0.2);
+}
+
+/* 텍스트 입력창 기본 스타일 */
+#review_input {
+    width: 100%;
+    height: 100%;
+    resize: none; /* 크기 조절 금지 */
+    border: none;
+    outline: none;
+    background: transparent; /* 뒷 배경 그대로 보이게 */
+    color: #fff;
+    font-size: 15px;
+    font-family: inherit;
+    padding-left: 15px;
+}
+
+/* placeholder 스타일 */
+#review_input::placeholder {
+    color: rgba(255,255,255,0.6);
+    font-size: 18px;
+    transition: opacity 0.2s;
+}
+
+/* 포커스하면 placeholder 사라짐 */
+#review_input:focus::placeholder {
+    opacity: 0;
+}
+/* 전송 버튼 */
+#review_send_btn {
+    position: absolute;
+    right: 20px;
+    top: 50%;                 /* 세로 중앙 정렬 */
+    transform: translateY(-50%); /* 정확히 중앙맞춤 */
+
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: 0.2s ease;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-bottom: 1px;  /* ➤ 아래로 쳐짐 보정 */
+}
+
+
+
+/* hover 효과 */
+#review_send_btn:hover {
+    background: rgba(255,255,255,0.25);
+
+}
+    /* ------------ 리뷰(코멘트) 스타일 -------------- */
+
+.review_content {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;  /* 리뷰 간격 20px → 25px */
+    height: 540px;
+    overflow-y: auto;
+    padding: 15px 15px 0 15px;  /* 양쪽 패딩 넣어 placeholder 위치 맞춤 */
+
+}
+
+/* 리뷰 하나 */
+.review_item {
+    display: flex;
+    gap: 15px;
+    align-items: center;   /* ← ⭐ 프로필이 텍스트의 '세로 중간'에 위치하게 함 */
+}
+
+/* 프로필 동그라미 공통 */
+.profile_circle {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 15px;
+    margin-left: 5px;   /* ← ⭐ placeholder padding-left와 동일하게 */
+}
+
+/* 긍정 */
+.profile_positive {
+    background-image: url('/static/img/positive.png');
+    background-size: 110%;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* 부정 */
+.profile_negative {
+    background-image: url('/static/img/negative.png');
+    background-size: 135%;      /* 이미지가 div 전체를 채우도록 */
+    background-position: center; /* 가운데 정렬 */
+    background-repeat: no-repeat;
+  }
+
+/* 텍스트 상자 */
+.review_text_box {
+    display: flex;
+    flex-direction: column;
+    color: #fff;
+}
+
+/* 계정명 */
+.review_name {
+    font-weight: bold;
+    font-size: 15px;
+    margin-bottom: 4px;
+}
+
+/* 리뷰 내용 */
+.review_text {
+    font-size: 14px;
+    opacity: 0.9;
+    line-height: 1.4;
+}
+
+    /* ----- REVIEW 스크롤바 꾸미기 ----- */
+
+.review_content::-webkit-scrollbar {
+    width: 8px;               /* 스크롤 두께 */
+}
+
+.review_content::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.05);   /* 아주 옅은 트랙 */
+    border-radius: 10px;
+}
+
+.review_content::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.25);   /* 밝은 글래스 느낌 스크롤 */
+    border-radius: 10px;
+    backdrop-filter: blur(3px);
+}
+
+.review_content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.45);   /* hover 시 조금 더 밝게 */
+}
+
+.review_content {
+padding-right: 30px; /* 스크롤 오른쪽 여백 */
+}
+</style>
+
+{% endblock %}
+
