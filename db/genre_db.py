@@ -27,8 +27,13 @@ def load_genre_map_from_db():
         query = "SELECT genreNm, genreNum FROM genres"
         cursor.execute(query)
 
-        for (genreNm, genreNum) in cursor:
-            genre_map[int(genreNum)] = genreNm
+        # print(cursor.fetchall())
+
+        for dic in cursor.fetchall():
+            print("===============")
+            print(dic)
+            print(dic['genreNm'], dic['genreNum'])
+            genre_map[int(dic['genreNum'])] = dic['genreNm']
 
         print(f"총 {len(genre_map)}개의 장르가 성공적으로 로드되었습니다.")
 
