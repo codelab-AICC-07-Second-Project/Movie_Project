@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block title %}추천 영화 목록{% endblock %}
+
+{% block login %}
+    {% if userId %}
+    <div id="logout-area">
+    <span id="welcome-name">
+        {{userId}}님 환영합니다.
+    </span>
+        <a href="/auth/mypage?userId={{ userId }}" id="mypage-link" class="mypage-link">MYPAGE</a>
+        <a href="/auth/logout" id="logout-link" class="logout-link">LOGOUT</a>
+    </div>
+
+    {% else %}
+    <div id="login-area">
+        <a href="/auth/login" id="login-link" class="login-link">LOGIN</a>
+        <a href="/auth/register" id="register-link" class="register-link">JOIN</a>
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<h5 style="color: white;">나와 비슷한 사람들은 이 영화들을 추천했어요.</h5>
+<div class="movie-container" style="display: flex; align-items: center; justify-content: center; height: 60vh;">
+    <div class="movie-section" style="flex: 3; padding-right: 30px;">
+        <div class="movie-grid" style="color: white; display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; row-gap: 15px;">
+            {% for movie in movies %}
+                <div class="movie-data" style="padding: 10px;">
+                    <div class="movie-card"
+                         onclick="toggleSelect(this)"
+                         data-poster="{{movie.poster_img}}"
+                         data-title="{{movie.local_title}}"
+                         data-movie-id="{{movie.movieId}}"
+                         style="cursor: pointer;">
+                        <div class="movie-image">
+                            <img src="https://image.tmdb.org/t/p/w154{{movie.poster_img}}"
+                                 alt="{{movie.title}}"
+                                 class="movie-image"
+                                 style="border-radius: 20px;">
+                        </div>
+                        <div class="movie-title">{{movie.local_title}}</div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="selected-movie-section" style="flex: 1; display: flex; flex-direction: column;">
+        <div id="selected-movie-data" style="height: 800px; max-width: 400px;"></div>
+        <button id="select-btn" onclick="selectMovie()" style="margin-left: auto;">이 영화를 선택</button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+    const userId = "{{userId}}";
+
+    function toggleSelect(element) {
+        const posterPath = element.getAttribute('data-poster');
+        const title = element.getAttribute('data-title');
+        const movieId = element.getAttribute('data-movie-id');
+
+        const selectBtn = document.getElementById('select-btn');
+        selectBtn.setAttribute('data-selected-id', movieId);
+
+        const displayArea = document.getElementById('selected-movie-data');
+        const resUrl500 = `https://image.tmdb.org/t/p/w500${posterPath}`;
+
+        displayArea.innerHTML = `
+            <img src='${resUrl500}'
+                alt='${title}'
+                style='width: 100%; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.7); margin-bottom: 10px;' >
+            <h3 style='color: white;'>${title}</h3>
+        `;
+
+        const allImages = document.querySelectorAll('.movie-image');
+        allImages.forEach((img) => {
+            img.style.border = 'none';
+            img.style.transform = 'scale(1)';
+            img.style.opacity = '0.6';
+        });
+
+        const selectedImg = element.querySelector('img');
+        selectedImg.style.border = '3px solid yellow';
+        selectedImg.style.transform = 'scale(1.05)';
+        selectedImg.style.opacity = '1';
+    }
+
+    function selectMovie() {
+        const selectBtn = document.getElementById('select-btn');
+        const movieId = selectBtn.getAttribute('data-selected-id');
+
+        if (movieId) {
+            window.location.href = `chart?movieId=${movieId}&userId=${userId}`;
+        } else {
+            alert('영화를 선택해주세요.');
+        }
+    }
+
+    function resetSelection() {
+        const displayArea = document.getElementById('selected-movie-data');
+        displayArea.innerHTML = ''; // 내용 비우기 (또는 안내 문구 추가 가능)
+
+        const allImages = document.querySelectorAll('.movie-image');
+        allImages.forEach((img) => {
+            img.style.border = 'none';
+            img.style.transform = 'scale(1)';
+            img.style.opacity = '1'; // 투명도 원복
+        });
+
+        const selectBtn = document.getElementById('select-btn');
+        selectBtn.removeAttribute('data-selected-id');
+    }
+
+    window.addEventListener('click', function(e) {
+        if (!e.target.closest('.movie-card') && !e.target.closest('#select-btn')) {
+            resetSelection();
+        }
+    });
+</script>
+{% endblock %}

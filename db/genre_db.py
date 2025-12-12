@@ -1,14 +1,17 @@
-import mysql.connector
-from mysql.connector import Error
+import pymysql as mysql
+from pymysql import IntegrityError
+from pymysql.cursors import DictCursor
 import os
 from dotenv import load_dotenv
 
+load_dotenv()
+
 DB_CONFIG = {
-    "host": "localhost",
-    "user": "root",
-    "password": "1234",
-    "database": "first_scene",
-    "port": 3307
+    'host': os.getenv('DB_HOST'),
+    'port': int(os.getenv('DB_PORT')),
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'db': os.getenv('DB_NAME'),
 }
 
 
@@ -18,7 +21,7 @@ def load_genre_map_from_db():
     connection = None
 
     try:
-        connection = mysql.connector.connect(**DB_CONFIG)
+        connection = mysql.connect(**DB_CONFIG, cursorclass=DictCursor)
         cursor = connection.cursor()
 
         query = "SELECT genreNm, genreNum FROM genres"
@@ -29,11 +32,11 @@ def load_genre_map_from_db():
 
         print(f"총 {len(genre_map)}개의 장르가 성공적으로 로드되었습니다.")
 
-    except mysql.connector.Error as err:
-        print(f"MySQL 오류 발생: {err}")
+    except IntegrityError as e:
+        print(f"MySQL 오류 발생: {e}")
 
     finally:
-        if connection and connection.is_connected():
+        if connection:
             connection.close()
 
     return genre_map

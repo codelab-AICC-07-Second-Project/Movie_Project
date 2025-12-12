@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}추천 영화 목록{% endblock %}
+
+{% block login %}
+    {% if userId %}
+    <div id="logout-area">
+    <span id="welcome-name">
+        {{userId}}님 환영합니다.
+    </span>
+        <a href="/auth/mypage?userId={{ userId }}" id="mypage-link" class="mypage-link">MYPAGE</a>
+        <a href="/auth/logout" id="logout-link" class="logout-link">LOGOUT</a>
+    </div>
+
+    {% else %}
+    <div id="login-area">
+        <a href="/auth/login" id="login-link" class="login-link">LOGIN</a>
+        <a href="/auth/register" id="register-link" class="register-link">JOIN</a>
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div id="selected-banner" class="banner"
+     style="position: relative; height: 60vh; background-size: cover; background-position: top; transition: background-image 0.5s ease-in-out;
+            background-image: linear-gradient(to right, rgba(0,0,0,0.8) 20%, transparent 50%),
+                              linear-gradient(to top, rgba(0,0,0,0.8) 10%, transparent 50%),
+                              url('https://image.tmdb.org/t/p/original{{ selected_movie.backdrop_img }}');">
+
+    <div id="detail-container" class="movie-detail" style="color: white; padding-top: 100px; padding-left: 50px;">
+        <div>
+            <span id="selected-rating" class="rating-badge" style="font-size: 1.2rem; color: #ffc107; font-weight: bold;">
+                ★ {{ "%.2f"|format(selected_movie.vote_average)}}
+            </span>
+        </div>
+        <h1 class="movie-title mt-2" style="font-size: 3rem; font-weight: bold;">
+            <span id="selected-title">{{ selected_movie.title }}</span>
+            <small id="selected-release" class="fs-4 text-muted">
+                {% if selected_movie.release %}({{ selected_movie.release }}){% endif %}
+            </small>
+        </h1>
+        <div id="selected-genre" class="movie-genre" style="margin: 10px 0; color: #ccc;">
+            {{ selected_movie.genres|join(' | ') }}
+        </div>
+        <p id="selected-overview" class="movie-overview" style="max-width: 600px; line-height: 1.6;">
+            {% if selected_movie.overview %}
+                {{ selected_movie.overview[:200] }}...
+            {% else %}
+                줄거리 정보가 없습니다.
+            {% endif %}
+        </p>
+    </div>
+
+    <div id="tmdb-container" class="tmdb-recommendations" style="position: absolute; bottom: 0px; width: 100%; padding: 0 50px;">
+        <h3 style="color: white; margin-bottom: 15px;">You Might Like</h3>
+        <div class="scrolling-wrapper" style="display: flex; overflow-x: auto; gap: 15px;">
+            {% for movie in recommendations %}
+            <div class="movie-card"
+                 onclick="changeBanner({{ loop.index0 }}, event)"
+                 style="cursor: pointer; min-width: 150px;">
+                <img src="https://image.tmdb.org/t/p/w185{{movie.poster_img}}"
+                    alt="{{movie.title}}"
+                    class="movie-poster"
+                    style="border-radius: 10px; width: 100%; transition: transform 0.2s;">
+                <p class="movie-title" style="color: white; text-align: center; margin-top: 5px;">{{movie.title}}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    const originalMovie = {{ selected_movie | tojson }};
+    const recommendations = {{ recommendations | tojson }};
+
+    function updateDisplay(movieData) {
+        if (!movieData) return;
+
+        const banner = document.getElementById('selected-banner');
+        const backdropPath = movieData.backdrop_img ? movieData.backdrop_img : '';
+        banner.style.backgroundImage = `
+            linear-gradient(to right, rgba(0,0,0,0.8) 20%, transparent 50%),
+            linear-gradient(to top, rgba(0,0,0,0.8) 10%, transparent 50%),
+            url('https://image.tmdb.org/t/p/original${backdropPath}')
+        `;
+
+        document.getElementById('selected-rating').innerText = `★ ${parseFloat(movieData.vote_average).toFixed(2)}`;
+        document.getElementById('selected-title').innerText = movieData.title;
+
+        const releaseText = movieData.release ? `(${movieData.release})` : '';
+        document.getElementById('selected-release').innerText = releaseText;
+
+        const genreText = (movieData.genres && movieData.genres.length > 0) ? movieData.genres.join(' | ') : '';
+        document.getElementById('selected-genre').innerText = genreText;
+
+        let overview = movieData.overview || '줄거리 정보가 없습니다.';
+        if (overview.length > 200) {
+            overview = overview.substring(0, 200) + '...';
+        };
+        document.getElementById('selected-overview').innerText = overview;
+    };
+
+    function changeBanner(index, event) {
+        if (event) event.stopPropagation();
+
+        const selectedContent = recommendations[index];
+        updateDisplay(selectedContent);
+    };
+
+    document.getElementById('selected-banner').addEventListener('click', (event) => {
+        const detailArea = document.getElementById('detail-container');
+        const listArea = document.getElementById('tmdb-container');
+
+        if (!detailArea.contains(event.target) && !listArea.contains(event.target)) {
+            updateDisplay(originalMovie);
+        }
+    });
+</script>
+{% endblock %}

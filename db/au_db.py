@@ -4,15 +4,19 @@ from pymysql.cursors import DictCursor
 from pymysql.err import IntegrityError
 import bcrypt
 
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
 def get_connection():
     return pymysql.connect(
-        host='localhost',
-        port=3307,
-        user='root',
-        password='1234',
-        db='first_scene',
+        host=os.getenv('DB_HOST'),
+        port=int(os.getenv('DB_PORT')),
+        user=os.getenv('DB_USER'),
+        password=os.getenv('DB_PASSWORD'),
+        db=os.getenv('DB_NAME'),
         charset='utf8',
-        cursorclass=pymysql.cursors.DictCursor
+        cursorclass=DictCursor
     )
 
 
