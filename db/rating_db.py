@@ -2,16 +2,22 @@ import pymysql as mysql
 from pymysql import IntegrityError
 from pymysql.cursors import DictCursor
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+DB_CONFIG = {
+    'host': os.getenv('DB_HOST'),
+    'port': int(os.getenv('DB_PORT')),
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'db': os.getenv('DB_NAME'),
+}
 
 def read_chart_by_movieId(movieId):
     try:
-        con = mysql.connect(host='localhost',
-                            port=3307,
-                            user='root',
-                            password='1234',
-                            db='first_scene',
-                            cursorclass=DictCursor
-                            )
+        con = mysql.connect(**DB_CONFIG, cursorclass=DictCursor)
         cursor = con.cursor()
         sql = """
               SELECT rating , count(*) AS count from ratings WHERE movieId = %s
@@ -29,6 +35,7 @@ def read_chart_by_movieId(movieId):
     except IntegrityError as ie:
         print("무결성 에러 발생함.")
         print(ie)  # 에러 정보 출력
+        return
 
 
     return result;
@@ -36,13 +43,7 @@ def read_chart_by_movieId(movieId):
 def read_all(movieId):
     try:
         # 2. db연결(url(ip+port), id/pw, db명)
-        con = mysql.connect(host='localhost',
-                            port=3307,
-                            user='root',
-                            password='1234',
-                            db='first_scene',
-                            cursorclass=DictCursor
-                            )
+        con = mysql.connect(**DB_CONFIG, cursorclass=DictCursor)
         cursor = con.cursor()
 
         # 3. sql문 작성한 후 sql문을 db서버에 보내자.
@@ -65,6 +66,7 @@ def read_all(movieId):
     except IntegrityError as ie:
         print("무결성 에러 발생함.")
         print(ie)  # 에러 정보 출력
+        return
 
     return rows;
 
@@ -72,13 +74,7 @@ def read_all(movieId):
 def create(data):
     try :
         # 2. db연결(url(ip+port), id/pw, db명)
-        con = mysql.connect(host='localhost',
-                            port= 3307,
-                            user='root',
-                            password='1234',
-                            db='first_scene',
-                            cursorclass=DictCursor
-                            )
+        con = mysql.connect(**DB_CONFIG, cursorclass=DictCursor)
         cursor = con.cursor()
 
         # 3. sql문 작성한 후 sql문을 db서버에 보내자.
