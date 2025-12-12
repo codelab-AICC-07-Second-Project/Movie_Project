@@ -135,10 +135,12 @@ body {
 
 
                      </div>
-                      <div class="percent_bar">
-                            <div class="percent_fill positive" style="--percent: {{ pos_percent }}%;"></div>
-                        </div>
+                       <div class="percent_outer">
+                          <div class="percent_bar">
+                                <div class="percent_fill positive" style="--percent: {{ pos_percent }}%;"></div>
+                            </div>
 
+                       </div>
 
 
                 </div>
@@ -183,7 +185,7 @@ body {
 </div>
 
 <div class="btn_chart_wrap">
-    <a href="/" class="btn_chart">뒤로 가기</a>
+    <a href="/movielist?userId={{userId}}" class="btn_chart">뒤로 가기</a>
     <a href="/recommend?movieId={{movieId}}&userId={{userId}}" class="btn_chart">이 영화를 선택</a>
 </div>
 
@@ -301,6 +303,42 @@ background: linear-gradient(
     gap: 4px;                 /* 위아래 간격 */
 }
 
+.pos_percent_box, .neg_percent_box {
+    width: 70px;
+    height: 60px;
+    border-radius: 10px;
+    background: transparent;      /* 속은 살짝 투명 */
+    backdrop-filter: blur(4px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 긍정 = 핑크 네온 */
+.pos_percent_box {
+    border: 2px solid rgba(255,120,200,0.7);
+    box-shadow:
+        0 0 8px #F3185C,
+        0 0 16px rgba(255,120,200,0.7);
+}
+
+/* 부정 = 파랑 네온 */
+.neg_percent_box {
+    border: 2px solid rgba(120,180,255,0.7);
+    box-shadow:
+        0 0 8px #12C9F6,
+        0 0 16px rgba(120,180,255,0.7);
+}
+
+/* 글자도 네온 느낌 */
+.pos_percent_box .percent_name,
+.pos_percent_box .percent_label {
+    color: #ffffff;
+
+}
+
+
 /* 막대는 아래 전체 열을 가로지르도록 */
 .percent_bar {
   grid-area: bar;
@@ -320,18 +358,35 @@ background: linear-gradient(
   display:inline-block;
 }
 
-/* 배경 바 */
+/* 바깥 외곽 라인 */
+.percent_outer {
+    width: 75%;                     /* percent_bar보다 조금 크게 */
+    height: 30px;                   /* percent_bar보다 높이 +12px */
+    border-radius: 30px;
+
+    border: 2px solid rgba(255,255,255,0.2);
+
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 5px;
+    padding: 6px;                   /* 내부 바와 외곽선 사이 여백 생기는 핵심 */
+}
+
+/* 내부 바 (기존 percent_bar) */
 .percent_bar {
-    width: 70%;               /* 전체 가로폭 차지 */
+    width: 100%;
     height: 18px;
     border-radius: 20px;
-    background: rgba(255,255,255,0.1);
-    overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.2);
 
-    display: block;            /* ← inline 요소 옆으로 붙는 문제 방지 */
-    margin-top: 10px;          /* 위와 간격 */
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    overflow: hidden;
+
 }
+
+
 .percent_fill.positive {
     width: var(--percent);
     height: 100%;
