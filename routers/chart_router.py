@@ -66,3 +66,8 @@ def insert(request: Request):
 
     #############return review_data
     return RedirectResponse(url="/chart?movieId=" + str(movieId) + "&userId=" + accountId, status_code=303)
+
+
+
+
+
